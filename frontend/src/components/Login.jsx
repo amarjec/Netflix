@@ -1,5 +1,9 @@
 import React, { useState } from 'react'
 import Header from './Header'
+import axios from 'axios';
+import { API_END_POINT } from './../utils/constant';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
     const [isLogin, setIsLogin] = useState(false);
@@ -7,12 +11,53 @@ const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
+    const navigate = useNavigate();
+
     const loginHandler = () => {
         setIsLogin(!isLogin);
     }
     const getInputData = async (e)=>{
         e.preventDefault();
-        console.log(fullName, email, password);
+
+        if (isLogin) {
+            const user = {email, password};
+            try {
+                const res = await axios.post(`${API_END_POINT}/login`, user,{
+                    Headers: {'Content-Type': 'application/json'},
+                    withCredentials: true
+                }) 
+                console.log(res);
+                if (res.data.success) {
+                    toast.success(res.data.message);
+                }
+                navigate("/browse");
+            } catch (error) {
+                console.log(error);
+                toast.error(error.response?.data?.message || "An error occurred");
+            }
+
+        }
+        else {
+            //register or signup user
+            const user = {fullName, email, password};
+            try {
+                const res = await axios.post(`${API_END_POINT}/register`, user,{
+                    headers: {'Content-Type': 'application/json'},
+                    withCredentials: true
+                });
+                console.log("Response:", res); // Inspect this
+                if (res.data.success) {
+                    toast.success(res.data.message);
+                }
+                setIsLogin(true);
+            } catch (error) {
+                console.log("Error Response:", error.response);
+                toast.error(error.response?.data?.message || "An error occurred");
+            }
+            
+        }
+
+        
 
         setFullName("");
         setEmail("");
